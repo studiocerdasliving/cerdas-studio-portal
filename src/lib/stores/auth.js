@@ -4,8 +4,16 @@ import { writable } from 'svelte/store';
 const storedToken = localStorage.getItem('token');
 const storedUser = localStorage.getItem('user');
 
+let initialUser = null;
+try {
+  initialUser = storedUser && storedUser !== 'undefined' ? JSON.parse(storedUser) : null;
+} catch(e) {
+  console.error("Failed to parse user from localStorage", e);
+  localStorage.removeItem('user');
+}
+
 export const token = writable(storedToken || null);
-export const user = writable(storedUser ? JSON.parse(storedUser) : null);
+export const user = writable(initialUser);
 export const isAuthenticated = writable(!!storedToken);
 
 // Fungsi untuk login dan menyimpan token

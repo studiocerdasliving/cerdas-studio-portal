@@ -12,6 +12,7 @@
         try {
             const fp = await fpPromise.load();
             const result = await fp.get();
+            localStorage.setItem('fp_hash', result.visitorId);
             return result.visitorId;
         } catch(e) {
             return "unknown";

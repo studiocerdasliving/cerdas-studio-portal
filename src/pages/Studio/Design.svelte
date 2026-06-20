@@ -22,7 +22,9 @@
         const urlParams = new URLSearchParams(window.location.search);
         
         // Alihkan langsung ke React App, gunakan fragment untuk token agar tidak terekam di server logs/referrers
-        window.location.href = designUrl + "?" + urlParams.toString() + "#token=" + currentToken;
+        const queryStr = urlParams.toString();
+        const finalUrl = `${designUrl}${designUrl.endsWith('/') ? '' : '/'}${queryStr ? '?' + queryStr : ''}#token=${currentToken}`;
+        window.location.href = finalUrl;
     });
 </script>
 

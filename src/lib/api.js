@@ -11,7 +11,6 @@ export async function apiFetch(endpoint, options = {}) {
   // Generate / Get Fingerprint Hash
   let fpHash = localStorage.getItem('fp_hash');
   if (!fpHash) {
-    // Fallback if FingerprintJS hasn't run yet, but ideally it should be there.
     fpHash = "pending_fp"; 
   }
   
@@ -35,27 +34,35 @@ export async function apiFetch(endpoint, options = {}) {
       headers,
     });
 
-    // Tangkap token baru jika server memberikan Sliding Session (Alternatif 4)
+    // Tangkap token baru jika server memberikan Sliding Session
     const newToken = response.headers.get('X-New-Token');
     if (newToken) {
-      // Import secara dinamis agar tidak circular dependency jika perlu,
-      // tapi kita sudah import { token } di atas, kita import updateToken.
       import('./stores/auth.js').then(module => {
         module.updateToken(newToken);
       });
     }
 
-    if (response.status === 401) {
-      // Token expired or invalid
-      logout();
-      window.location.href = '/login';
-      throw new Error('Unauthorized');
+    // Baca body sekali saja sebagai teks, lalu coba parse sebagai JSON
+    const rawText = await response.text();
+    let data = null;
+    try {
+      data = JSON.parse(rawText);
+    } catch (_) {
+      // Backend mengembalikan plain text (bukan JSON), gunakan sebagai pesan error
+      data = { error: rawText.trim() || 'Server error' };
     }
 
-    const data = await response.json();
-    
+    if (response.status === 401) {
+      logout();
+      // Jangan redirect jika sedang di halaman login agar pesan error tampil di UI
+      if (endpoint !== '/login' && endpoint !== '/register') {
+        window.location.href = '/login';
+      }
+      throw new Error(data.error || data.message || 'Email atau password salah');
+    }
+
     if (!response.ok) {
-      throw new Error(data.error || 'API Request failed');
+      throw new Error(data.error || data.message || `Error ${response.status}`);
     }
 
     return data;
