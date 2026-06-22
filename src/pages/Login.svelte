@@ -16,6 +16,7 @@
             localStorage.setItem('fp_hash', result.visitorId);
             return result.visitorId;
         } catch(e) {
+            localStorage.setItem('fp_hash', "unknown");
             return "unknown";
         }
     }

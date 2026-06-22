@@ -62,7 +62,7 @@
             </div>
             <div class="input-group">
                 <label for="password">Password</label>
-                <input type="password" id="password" bind:value={password} required placeholder="Minimal 6 karakter">
+                <input type="password" id="password" bind:value={password} required placeholder="Minimal 8 karakter">
             </div>
             <button type="submit" class="btn btn-primary" disabled={isRegistering}>
                 {isRegistering ? 'Mendaftar...' : 'Daftar Akun'}
