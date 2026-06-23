@@ -1,5 +1,5 @@
 import { get } from 'svelte/store';
-import { token, logout } from './stores/auth.js';
+import { logout } from './stores/auth.js';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 if (!API_BASE_URL) {
@@ -7,7 +7,6 @@ if (!API_BASE_URL) {
 }
 
 export async function apiFetch(endpoint, options = {}) {
-  const currentToken = get(token);
   // Generate / Get Fingerprint Hash
   let fpHash = localStorage.getItem('fp_hash');
   if (!fpHash) {
@@ -24,23 +23,16 @@ export async function apiFetch(endpoint, options = {}) {
     delete headers['Content-Type'];
   }
 
-  if (currentToken) {
-    headers['Authorization'] = `Bearer ${currentToken}`;
-  }
-
+  // Token is now handled via HttpOnly Cookie automatically by the browser
+  
   try {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       ...options,
       headers,
+      credentials: 'include',
     });
 
-    // Tangkap token baru jika server memberikan Sliding Session
-    const newToken = response.headers.get('X-New-Token');
-    if (newToken) {
-      import('./stores/auth.js').then(module => {
-        module.updateToken(newToken);
-      });
-    }
+    // X-New-Token is no longer needed since Set-Cookie handles sliding sessions
 
     // Baca body sekali saja sebagai teks, lalu coba parse sebagai JSON
     const rawText = await response.text();
@@ -56,7 +48,7 @@ export async function apiFetch(endpoint, options = {}) {
       logout();
       // Jangan redirect jika sedang di halaman login agar pesan error tampil di UI
       if (endpoint !== '/login' && endpoint !== '/register') {
-        window.location.href = '/login';
+        window.location.href = '/?login=true';
       }
       throw new Error(data.error || data.message || 'Email atau password salah');
     }

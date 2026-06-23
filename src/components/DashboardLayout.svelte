@@ -1,6 +1,13 @@
 <script>
   import { Link, navigate  } from 'svelte-routing'
   import { url, propertyImg } from '../lib/url.svelte.js'
+  import { logout } from '../lib/stores/auth.js'
+
+  function handleLogout(e) {
+      e.preventDefault();
+      logout();
+      navigate('/');
+  }
 
   let {
     title = 'Dashboard',
@@ -84,7 +91,7 @@
         <span class="material-symbols-rounded nav-icon">home</span>
         <span class="nav-label">Kembali ke Beranda</span>
       </a>
-      <a href={url('/logout')} class="nav-item nav-item-logout">
+      <a href="#" onclick={handleLogout} class="nav-item nav-item-logout">
         <span class="material-symbols-rounded nav-icon">logout</span>
         <span class="nav-label">Keluar</span>
       </a>

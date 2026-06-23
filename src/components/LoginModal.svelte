@@ -5,7 +5,7 @@
     import { url } from '../lib/url.svelte.js';
     import { apiFetch } from '../lib/api.js';
 
-    let { open = $bindable(false), google_client_id = import.meta.env.VITE_GOOGLE_CLIENT_ID || '', onSwitchToRegister } = $props();
+    let { open = $bindable(false), google_client_id = import.meta.env.VITE_GOOGLE_CLIENT_ID || '', onSwitchToRegister, intendedRoute = null } = $props();
 
     let email       = $state('');
     let password    = $state('');
@@ -133,31 +133,96 @@
         pendingCredential = ''; googleProcessing = false;
     }
 
+    let expectedCaptcha = '';
+
+    function generateCaptchaImage(text) {
+        const canvas = document.createElement('canvas');
+        canvas.width = 120;
+        canvas.height = 48;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return '';
+        
+        // Background
+        ctx.fillStyle = '#f0ede8';
+        ctx.fillRect(0, 0, 120, 48);
+        
+        // Noise lines
+        for (let i = 0; i < 5; i++) {
+            ctx.strokeStyle = ['#C9A84C', '#9c9080', '#e2e8f0'][Math.floor(Math.random()*3)];
+            ctx.beginPath();
+            ctx.moveTo(Math.random() * 120, Math.random() * 48);
+            ctx.lineTo(Math.random() * 120, Math.random() * 48);
+            ctx.stroke();
+        }
+        
+        // Text
+        ctx.font = 'bold 24px monospace';
+        ctx.fillStyle = '#4A4A4A';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        
+        // Draw characters with slight rotation
+        for (let i = 0; i < text.length; i++) {
+            ctx.save();
+            ctx.translate(20 + i * 20, 24);
+            ctx.rotate((Math.random() - 0.5) * 0.4);
+            ctx.fillText(text[i], 0, 0);
+            ctx.restore();
+        }
+        
+        return canvas.toDataURL('image/png');
+    }
+
     async function fetchCaptcha() {
-        try {
-            const res = await fetch(url('/captcha/refresh'));
-            const json = await res.json();
-            captchaImg = json.image;
-        } catch {}
+        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+        let text = '';
+        for (let i = 0; i < 5; i++) {
+            text += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        expectedCaptcha = text;
+        captchaImg = generateCaptchaImage(text);
     }
 
     async function refreshCaptcha() {
         refreshing = true;
         await fetchCaptcha();
         captcha = '';
-        refreshing = false;
+        setTimeout(() => refreshing = false, 300);
     }
+
+    import { login } from '../lib/stores/auth.js';
 
     /** @param {any} e */
     function handleSubmit(e) {
         e.preventDefault();
-        processing = true;
         errors = {};
+        
+        if (captcha.toUpperCase() !== expectedCaptcha) {
+            errors.captcha = 'Kode verifikasi tidak sesuai';
+            refreshCaptcha();
+            return;
+        }
+        
+        processing = true;
         apiFetch('/login', {
             method: 'POST',
-            body: JSON.stringify({ email, password, captcha })
+            body: JSON.stringify({ email, password })
         })
-        .then(() => { closeModal(); })
+        .then(data => {
+            if (data.token) {
+                login(data.token, data.user);
+                closeModal();
+                if (intendedRoute) {
+                    navigate(intendedRoute);
+                } else if (data.user?.akses_level === 'Agent' || data.user?.id_staff) {
+                    navigate('/agent/dashboard');
+                } else {
+                    window.location.reload();
+                }
+            } else {
+                errors = { general: 'Gagal memproses login' };
+            }
+        })
         .catch(err => { errors = { general: err.message || 'Login gagal' }; })
         .finally(() => { processing = false; });
     }
@@ -221,6 +286,17 @@
                     </div>
                 </a>
 
+                {#if intendedRoute === '/studio/hub'}
+                <div class="modal-left-headline">Studio <span>Design</span> AI</div>
+                <div class="modal-left-desc">Wujudkan rumah impian Anda dalam hitungan menit dengan dukungan teknologi kecerdasan buatan.</div>
+
+                <div class="modal-left-features">
+                    <div class="lf-item"><span class="material-symbols-rounded">account_balance</span> Desain Arsitektur Cerdas</div>
+                    <div class="lf-item"><span class="material-symbols-rounded">chair</span> AI Interior Otomatis</div>
+                    <div class="lf-item"><span class="material-symbols-rounded">square_foot</span> Denah Lantai Presisi</div>
+                    <div class="lf-item"><span class="material-symbols-rounded">texture</span> Koleksi Material Premium</div>
+                </div>
+                {:else}
                 <div class="modal-left-headline">Selamat <span>Datang</span> Kembali!</div>
                 <div class="modal-left-desc">Masuk ke akun Anda untuk mengakses semua fitur platform properti terlengkap di Indonesia.</div>
 
@@ -230,6 +306,7 @@
                     <div class="lf-item"><span class="material-symbols-rounded">favorite</span> Properti favorit tersimpan</div>
                     <div class="lf-item"><span class="material-symbols-rounded">support_agent</span> Hubungi agen profesional</div>
                 </div>
+                {/if}
 
                 <!-- Decorative SVG -->
                 <div class="modal-left-deco">
@@ -254,12 +331,19 @@
             </button>
 
             <div class="modal-form-wrap">
-                <h2 id="login-modal-title">Masuk Akun</h2>
+                <h2 id="login-modal-title" style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                    Masuk Akun
+                    {#if intendedRoute === '/studio/hub'}
+                        <span style="font-size:0.95rem; color:#C9A84C; font-weight:600; padding:4px 10px; background:rgba(201,168,76,0.1); border-radius:8px;">Studio Design</span>
+                    {:else if intendedRoute === '/agent/dashboard'}
+                        <span style="font-size:0.95rem; color:#C9A84C; font-weight:600; padding:4px 10px; background:rgba(201,168,76,0.1); border-radius:8px;">Agent Dashboard</span>
+                    {/if}
+                </h2>
                 <p class="modal-subtitle">Akses portal properti &amp; lifestyle terbaik</p>
 
-                {#if errors.google}
+                {#if errors.google || errors.general}
                     <div class="form-alert alert-danger">
-                        <span class="material-symbols-rounded">error</span> {errors.google}
+                        <span class="material-symbols-rounded">error</span> {errors.google || errors.general}
                     </div>
                 {/if}
 

@@ -16,8 +16,7 @@
   import PropertyIndex from "./pages/Property/Index.svelte";
   import PropertyShow from "./pages/Property/Show.svelte";
   
-  import AgentLogin from "./pages/Agent/Login.svelte";
-  import AgentRegister from "./pages/Agent/Register.svelte"; // Pasang iklan
+  // Unused agent auth components removed
   import AgentProfil from "./pages/Agent/Profil.svelte";
   import AgentDashboard from "./pages/Agent/Dashboard/Index.svelte";
   import AgentIklanIndex from "./pages/Agent/Iklan/Index.svelte";
@@ -36,6 +35,8 @@
   import KprCalculator from "./pages/KprCalculator.svelte";
   import Gallery from "./pages/Gallery.svelte";
   import Viewer from "./pages/Viewer.svelte";
+  import TermsCondition from "./pages/TermsCondition.svelte";
+  import Profiles from "./pages/Profiles.svelte";
   
   export let url = "";
 </script>
@@ -61,10 +62,12 @@
     <Route path="/tentang"><Tentang /></Route>
     <Route path="/privasi"><Privasi /></Route>
     <Route path="/syarat"><Syarat /></Route>
+    <Route path="/terms-condition"><TermsCondition /></Route>
+    <Route path="/profiles"><Profiles /></Route>
 
     <!-- Agent Routes -->
-    <Route path="/agent/login"><AgentLogin /></Route>
-    <Route path="/pasang-iklan"><AgentRegister /></Route>
+    <Route path="/agent/login"><Login /></Route>
+    <Route path="/pasang-iklan"><Register /></Route>
     <Route path="/agent/dashboard"><AgentDashboard /></Route>
     <Route path="/agent/profil"><AgentProfil /></Route>
     <Route path="/agent/iklan"><AgentIklanIndex /></Route>

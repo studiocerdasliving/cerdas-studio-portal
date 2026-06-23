@@ -161,7 +161,7 @@
         if (photo) fd.append('photo', photo);
 
         try {
-            await apiFetch('/pasang-iklan', { method: 'POST', body: fd });
+            await apiFetch('/agent/register', { method: 'POST', body: fd });
             if (usingGoogle) {
                 // Google langsung aktif — tutup & redirect
                 closeModal();

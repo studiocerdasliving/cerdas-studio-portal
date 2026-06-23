@@ -1,8 +1,7 @@
 <script>
     import { onMount } from 'svelte';
     import { get } from 'svelte/store';
-    import { token } from '../../lib/stores/auth.js';
-    import { navigate } from 'svelte-routing';
+    import { user } from '../../lib/stores/auth.js';
     
     // URL ke React app Studio Design Tactical
     let designUrl = import.meta.env.VITE_STUDIODESIGN_URL;
@@ -11,19 +10,20 @@
     }
 
     onMount(() => {
-        const currentToken = get(token);
+        const currentUser = get(user);
         
-        if (!currentToken) {
-            navigate('/studio/login');
+        if (!currentUser) {
+            window.location.href = '/?login=true';
             return;
         }
 
         // Ambil query parameter jika ada (misal: ?project=1)
         const urlParams = new URLSearchParams(window.location.search);
         
-        // Alihkan langsung ke React App, gunakan fragment untuk token agar tidak terekam di server logs/referrers
+        // Alihkan langsung ke React App
+        // Karena sistem sekarang menggunakan HttpOnly cookie, token tidak lagi ditransfer lewat hash URL
         const queryStr = urlParams.toString();
-        const finalUrl = `${designUrl}${designUrl.endsWith('/') ? '' : '/'}${queryStr ? '?' + queryStr : ''}#token=${currentToken}`;
+        const finalUrl = `${designUrl}${designUrl.endsWith('/') ? '' : '/'}${queryStr ? '?' + queryStr : ''}`;
         window.location.href = finalUrl;
     });
 </script>

@@ -114,20 +114,65 @@
         googleProcessing   = false;
     }
 
+    let expectedCaptcha = '';
+
+    function generateCaptchaImage(text) {
+        const canvas = document.createElement('canvas');
+        canvas.width = 120;
+        canvas.height = 48;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return '';
+        
+        // Background
+        ctx.fillStyle = '#f0ede8';
+        ctx.fillRect(0, 0, 120, 48);
+        
+        // Noise lines
+        for (let i = 0; i < 5; i++) {
+            ctx.strokeStyle = ['#C9A84C', '#9c9080', '#e2e8f0'][Math.floor(Math.random()*3)];
+            ctx.beginPath();
+            ctx.moveTo(Math.random() * 120, Math.random() * 48);
+            ctx.lineTo(Math.random() * 120, Math.random() * 48);
+            ctx.stroke();
+        }
+        
+        // Text
+        ctx.font = 'bold 24px monospace';
+        ctx.fillStyle = '#4A4A4A';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        
+        // Draw characters with slight rotation
+        for (let i = 0; i < text.length; i++) {
+            ctx.save();
+            ctx.translate(20 + i * 20, 24);
+            ctx.rotate((Math.random() - 0.5) * 0.4);
+            ctx.fillText(text[i], 0, 0);
+            ctx.restore();
+        }
+        
+        return canvas.toDataURL('image/png');
+    }
+
     async function refreshCaptcha() {
         refreshing = true;
-        try {
-            const res = await fetch(url('/captcha/refresh'));
-            const json = await res.json();
-            captchaImg = json.image;
-            captcha = '';
-            errors.captcha = null;
-        } catch (e) {
-            console.error('Refresh captcha error:', e);
-        } finally {
-            refreshing = false;
+        
+        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+        let text = '';
+        for (let i = 0; i < 5; i++) {
+            text += chars.charAt(Math.floor(Math.random() * chars.length));
         }
+        expectedCaptcha = text;
+        captchaImg = generateCaptchaImage(text);
+        
+        captcha = '';
+        errors.captcha = null;
+        setTimeout(() => refreshing = false, 300);
     }
+
+    onMount(() => {
+        refreshCaptcha();
+    });
 
     /** @param {Event} e */
     function handleSubmit(e) {
@@ -139,10 +184,16 @@
             return;
         }
 
+        if (captcha.toUpperCase() !== expectedCaptcha) {
+            errors.captcha = "Kode verifikasi tidak sesuai";
+            refreshCaptcha();
+            return;
+        }
+
         processing = true;
         apiFetch('/login', {
             method: 'POST',
-            body: JSON.stringify({ email, password, captcha })
+            body: JSON.stringify({ email, password })
         }).then(data => {
             if (data.token) {
                 localStorage.setItem('auth_token', data.token);

@@ -14,6 +14,8 @@
         keywords = "",
         ogImage = "",
         ogType = "website",
+        forceLoginOpen = false,
+        forceRegisterOpen = false
     } = $props();
 
     let auth = $derived({ user: $user });
@@ -27,8 +29,9 @@
     let hideTimeout = $state(null);
 
     // Modal state
-    let showRegisterModal = $state(false);
-    let showLoginModal    = $state(false);
+    let showRegisterModal = $state(forceRegisterOpen);
+    let showLoginModal    = $state(forceLoginOpen);
+    let intendedRoute     = $state(null);
 
     let siteConfig = $state({
         namaweb: 'CerdasLiving',
@@ -39,7 +42,12 @@
     });
 
     function openRegister() { showLoginModal = false; showRegisterModal = true; }
-    function openLogin()    { showRegisterModal = false; showLoginModal = true; }
+    /** @param {string | null | Event} route */
+    function openLogin(route = null) { 
+        showRegisterModal = false; 
+        showLoginModal = true; 
+        intendedRoute = typeof route === 'string' ? route : null;
+    }
 
     /** @param {any} menu */
     function showMenu(menu) {
@@ -68,6 +76,19 @@
             scrolled = window.scrollY > 12;
         };
         window.addEventListener("scroll", handler, { passive: true });
+
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('login') === 'true') {
+            openLogin();
+            const urlObj = new URL(window.location.href);
+            urlObj.searchParams.delete('login');
+            window.history.replaceState({}, '', urlObj);
+        } else if (params.get('register') === 'true') {
+            openRegister();
+            const urlObj = new URL(window.location.href);
+            urlObj.searchParams.delete('register');
+            window.history.replaceState({}, '', urlObj);
+        }
 
         apiFetch('/config').then(res => {
             if (res && res.namaweb) {
@@ -180,7 +201,8 @@
                     onmouseleave={scheduleHide}
                 >
                     <a
-                        href={url("/studio/login")}
+                        href={url("/studio/hub")}
+                        onclick={(e) => { if (!auth?.user) { e.preventDefault(); openLogin('/studio/hub'); } }}
                         class="nav-link mega-nav-link {activeMenu === 'studio'
                             ? 'active-cerdashover'
                             : ''}"
@@ -211,7 +233,7 @@
                         >
                     </button>
 
-                    {#if auth?.user}
+                    {#if auth?.user && (auth.user.email || auth.user.id_staff)}
                         <Link
                             to={(userAksesLevel === 'Agent' || (auth.user && auth.user.id_staff)) ? url("/agent/profil") : url("/profile")}
                             class="nav-link"
@@ -241,7 +263,7 @@
                             type="button"
                             class="btn-elegant-login"
                             style="margin-left: 8px;"
-                            onclick={openLogin}
+                            onclick={() => openLogin()}
                         >
                             <span class="material-symbols-rounded" style="font-size: 1.1rem;">login</span>
                             Login
@@ -469,7 +491,7 @@
                         <!-- Col 1: Desain AI -->
                         <div class="mega-col">
                             <div class="mega-heading">DESAIN AI</div>
-                            <a href={url("/studio/login")} class="mega-item">
+                            <a href={url("/studio/hub")} class="mega-item" onclick={(e) => { if (!auth?.user) { e.preventDefault(); openLogin('/studio/hub'); } }}>
                                 <span class="mega-icon material-symbols-rounded"
                                     >account_balance</span
                                 >
@@ -482,7 +504,7 @@
                                     >
                                 </div>
                             </a>
-                            <a href={url("/studio/login")} class="mega-item">
+                            <a href={url("/studio/hub")} class="mega-item" onclick={(e) => { if (!auth?.user) { e.preventDefault(); openLogin('/studio/hub'); } }}>
                                 <span class="mega-icon material-symbols-rounded"
                                     >chair</span
                                 >
@@ -493,7 +515,7 @@
                                     >
                                 </div>
                             </a>
-                            <a href={url("/studio/login")} class="mega-item">
+                            <a href={url("/studio/hub")} class="mega-item" onclick={(e) => { if (!auth?.user) { e.preventDefault(); openLogin('/studio/hub'); } }}>
                                 <span class="mega-icon material-symbols-rounded"
                                     >square_foot</span
                                 >
@@ -504,7 +526,7 @@
                                     >
                                 </div>
                             </a>
-                            <a href={url("/studio/login")} class="mega-item">
+                            <a href={url("/studio/hub")} class="mega-item" onclick={(e) => { if (!auth?.user) { e.preventDefault(); openLogin('/studio/hub'); } }}>
                                 <span class="mega-icon material-symbols-rounded"
                                     >park</span
                                 >
@@ -515,7 +537,7 @@
                                     >
                                 </div>
                             </a>
-                            <a href={url("/studio/login")} class="mega-item">
+                            <a href={url("/studio/hub")} class="mega-item" onclick={(e) => { if (!auth?.user) { e.preventDefault(); openLogin('/studio/hub'); } }}>
                                 <span class="mega-icon material-symbols-rounded"
                                     >bar_chart</span
                                 >
@@ -551,7 +573,7 @@
                                     >
                                 </div>
                             </a>
-                            <a href={url("/studio/login")} class="mega-item">
+                            <a href={url("/studio/hub")} class="mega-item" onclick={(e) => { if (!auth?.user) { e.preventDefault(); openLogin('/studio/hub'); } }}>
                                 <span class="mega-icon material-symbols-rounded"
                                     >texture</span
                                 >
@@ -588,7 +610,8 @@
                                     teknologi AI terkini.
                                 </p>
                                 <a
-                                    href={url("/studio/login")}
+                                    href={url("/studio/hub")}
+                                    onclick={(e) => { if (!auth?.user) { e.preventDefault(); openLogin('/studio/hub'); } }}
                                     class="mega-cta-btn"
                                 >
                                     Mulai Studio Design →
@@ -737,8 +760,8 @@
     </nav>
 
     <!-- Auth Modals -->
-    <RegisterModal bind:open={showRegisterModal} google_client_id={googleClientId} onSwitchToLogin={openLogin} />
-    <LoginModal    bind:open={showLoginModal}    google_client_id={googleClientId} onSwitchToRegister={openRegister} />
+    <RegisterModal bind:open={showRegisterModal} google_client_id={googleClientId} onSwitchToLogin={() => openLogin()} />
+    <LoginModal    bind:open={showLoginModal}    google_client_id={googleClientId} onSwitchToRegister={openRegister} intendedRoute={intendedRoute} />
 
     <!-- MOBILE OVERLAY -->
     {#if mobileOpen}
@@ -978,6 +1001,12 @@
                     >
                     <Link to={url("/privasi")} class="footer-link"
                         >Kebijakan Privasi</Link
+                    >
+                    <Link to={url("/profiles")} class="footer-link"
+                        >Tentang Cerdas Living</Link
+                    >
+                    <Link to={url("/terms-condition")} class="footer-link"
+                        >S&K Cerdas Living</Link
                     >
                 </div>
 

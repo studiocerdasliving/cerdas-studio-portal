@@ -10,7 +10,7 @@
 
     function handleLogout() {
         logout();
-        navigate('/login');
+        navigate('/');
     }
 
     onMount(async () => {

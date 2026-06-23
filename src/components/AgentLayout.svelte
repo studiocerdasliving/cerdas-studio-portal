@@ -1,6 +1,13 @@
 <script>
   import { Link, navigate  } from 'svelte-routing'
   import { url, propertyImg } from '../lib/url.svelte.js'
+  import { logout } from '../lib/stores/auth.js'
+
+  function handleLogout(e) {
+      e.preventDefault();
+      logout();
+      navigate('/');
+  }
 
   let {
     title = 'Agent Portal',
@@ -98,7 +105,7 @@
         <span class="nav-label">Lihat Website</span>
       </a>
       {/if}
-      <a href={url('/agent/logout')} class="nav-item nav-item-logout">
+      <a href="#" onclick={handleLogout} class="nav-item nav-item-logout">
         <span class="material-symbols-rounded nav-icon">logout</span>
         <span class="nav-label">Keluar</span>
       </a>

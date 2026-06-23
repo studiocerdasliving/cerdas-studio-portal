@@ -6,7 +6,7 @@
 
     function handleLogout() {
         logout();
-        navigate('/login');
+        navigate('/');
     }
 
     let projectCount = 0;
