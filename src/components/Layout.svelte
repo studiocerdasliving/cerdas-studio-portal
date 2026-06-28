@@ -1,6 +1,6 @@
 <script>
     import { Link, navigate } from 'svelte-routing';
-    import { user } from '../lib/stores/auth.js';
+    import { user, logout } from '../lib/stores/auth.js';
     import { apiFetch } from '../lib/api.js';
     import { onMount } from "svelte";
     import { url } from "../lib/url.svelte.js";
@@ -42,6 +42,15 @@
         alamat: ''
     });
 
+    function handleDashboard() {
+        navigate(userAksesLevel === 'Agent' ? '/agent/dashboard' : '/studio/hub');
+    }
+
+    async function handleLogout() {
+        await logout();
+        navigate('/');
+    }
+
     function openRegister() { showLoginModal = false; showRegisterModal = true; }
     /** @param {string | null | Event} route */
     function openLogin(route = null) { 
@@ -62,7 +71,7 @@
     function scheduleHide() {
         hideTimeout = setTimeout(() => {
             activeMenu = null;
-        }, 180);
+        }, 150);
     }
 
     function cancelHide() {
@@ -233,23 +242,44 @@
 
                 <!-- Right Side -->
                 <div style="display:flex; align-items:center; gap:12px;">
-                    <button
-                        type="button"
-                        class="btn-elegant-login"
-                        onclick={() => openLogin()}
-                    >
-                        <span class="material-symbols-rounded" style="font-size: 1.1rem;">login</span>
-                        Login
-                    </button>
+                    {#if auth?.user}
+                        <button
+                            type="button"
+                            class="nav-cta"
+                            style="cursor:pointer; background: #1e1e1e; color: #ffffff; border: 1px solid #444; display: flex; align-items: center; gap: 6px; padding: 8px 16px;"
+                            onclick={handleDashboard}
+                        >
+                            <span class="material-symbols-rounded" style="font-size: 1.1rem;">dashboard</span>
+                            Dashboard
+                        </button>
 
-                    <button
-                        type="button"
-                        class="nav-cta"
-                        style="cursor:pointer;"
-                        onclick={openRegister}
-                    >
-                        Pasang Iklan
-                    </button>
+                        <button
+                            type="button"
+                            class="nav-cta"
+                            style="cursor:pointer; background: #1e1e1e; color: #ef4444; border: 1px solid #444; padding: 8px 16px;"
+                            onclick={handleLogout}
+                        >
+                            Logout
+                        </button>
+                    {:else}
+                        <button
+                            type="button"
+                            class="btn-elegant-login"
+                            onclick={() => openLogin()}
+                        >
+                            <span class="material-symbols-rounded" style="font-size: 1.1rem;">login</span>
+                            Login
+                        </button>
+
+                        <button
+                            type="button"
+                            class="nav-cta"
+                            style="cursor:pointer;"
+                            onclick={openRegister}
+                        >
+                            Pasang Iklan
+                        </button>
+                    {/if}
                 </div>
             </div>
 
@@ -1203,11 +1233,10 @@
     .mega-menu-wrapper {
         position: absolute;
         top: 100%;
-        left: 0;
-        right: 0;
-        display: flex;
-        justify-content: center;
-        padding: 8px 24px 0;
+        left: 50%;
+        width: 100%;
+        max-width: 900px;
+        padding: 8px 0 0;
         z-index: 1000;
         animation: megaSlideDown 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
@@ -1215,11 +1244,11 @@
     @keyframes megaSlideDown {
         from {
             opacity: 0;
-            transform: translateY(-8px);
+            transform: translate(-50%, -8px);
         }
         to {
             opacity: 1;
-            transform: translateY(0);
+            transform: translate(-50%, 0);
         }
     }
 
