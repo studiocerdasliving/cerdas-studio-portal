@@ -1,4 +1,5 @@
 <script>
+    let studioUrl = import.meta.env.VITE_STUDIODESIGN_URL || 'https://studio.cerdasliving.com';
     import { navigate  } from 'svelte-routing';
     import { onMount } from 'svelte';
     import { fade, scale } from 'svelte/transition';
@@ -113,14 +114,14 @@
                 closeModal();
                 if (intendedRoute) {
                     if (intendedRoute === '/studio/hub') {
-                        window.location.href = 'http://localhost:5174/studio/hub?token=' + res.token;
+                        window.location.href = studioUrl + '/studio/hub?token=' + res.token;
                     } else {
                         navigate(intendedRoute);
                     }
                 } else if (res.user?.akses_level === 'Agent' || res.user?.id_staff) {
                     navigate('/agent/dashboard');
                 } else {
-                    window.location.href = 'http://localhost:5174/studio/hub?token=' + res.token;
+                    window.location.href = studioUrl + '/studio/hub?token=' + res.token;
                 }
             } else {
                 errors = { google: res.errors?.google ?? res.message ?? 'Login Google gagal.' };
@@ -220,14 +221,14 @@
                 closeModal();
                 if (intendedRoute) {
                     if (intendedRoute === '/studio/hub') {
-                        window.location.href = 'http://localhost:5174/studio/hub?token=' + data.token;
+                        window.location.href = studioUrl + '/studio/hub?token=' + data.token;
                     } else {
                         navigate(intendedRoute);
                     }
                 } else if (data.user?.akses_level === 'Agent' || data.user?.id_staff) {
                     navigate('/agent/dashboard');
                 } else {
-                    window.location.href = 'http://localhost:5174/studio/hub?token=' + data.token;
+                    window.location.href = studioUrl + '/studio/hub?token=' + data.token;
                 }
             } else {
                 errors = { general: 'Gagal memproses login' };

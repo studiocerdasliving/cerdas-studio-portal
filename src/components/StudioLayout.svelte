@@ -1,4 +1,5 @@
 <script>
+    let studioUrl = import.meta.env.VITE_STUDIODESIGN_URL || 'https://studio.cerdasliving.com';
   import { navigate } from 'svelte-routing'
   import { url } from '../lib/url.svelte.js'
   import { logout, user } from '../lib/stores/auth.js'
@@ -24,13 +25,13 @@
   const primaryMenu = [
     { href: '/studio/hub', icon: 'space_dashboard', label: 'Dashboard', external: false },
     { href: '/studio/proyek', icon: 'folder_open', label: 'Proyek Saya', external: false },
-    { href: 'http://localhost:5174/', icon: 'grid_view', label: 'Template Design', external: true },
-    { href: 'http://localhost:5174/', icon: 'calculate', label: 'Estimasi Biaya', external: true },
-    { href: 'http://localhost:5174/', icon: 'person_search', label: 'Cari Designer', external: true },
-    { href: 'http://localhost:5174/', icon: 'engineering', label: 'Cari Kontraktor', external: true },
-    { href: 'http://localhost:5174/', icon: 'inventory_2', label: 'Asset Library', external: true },
+    { href: studioUrl + '/', icon: 'grid_view', label: 'Template Design', external: true },
+    { href: studioUrl + '/', icon: 'calculate', label: 'Estimasi Biaya', external: true },
+    { href: studioUrl + '/', icon: 'person_search', label: 'Cari Designer', external: true },
+    { href: studioUrl + '/', icon: 'engineering', label: 'Cari Kontraktor', external: true },
+    { href: studioUrl + '/', icon: 'inventory_2', label: 'Asset Library', external: true },
     { href: '/studio/upload', icon: 'cloud_upload', label: 'Upload Asset', external: false },
-    { href: 'http://localhost:5174/', icon: 'movie', label: 'Render', external: true },
+    { href: studioUrl + '/', icon: 'movie', label: 'Render', external: true },
   ]
 
   const secondaryMenu = [

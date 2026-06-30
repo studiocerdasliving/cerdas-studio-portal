@@ -1,4 +1,5 @@
 <script>
+    let studioUrl = import.meta.env.VITE_STUDIODESIGN_URL || 'https://studio.cerdasliving.com';
     import { navigate  } from 'svelte-routing';
     import { onMount } from 'svelte';
     import { url } from '../../lib/url.svelte.js';
@@ -97,7 +98,7 @@
                 if (res.user?.akses_level === 'Agent' || res.user?.id_staff) {
                     window.location.href = url('/agent/dashboard');
                 } else {
-                    window.location.href = 'http://localhost:5174/studio/hub?token=' + res.token;
+                    window.location.href = studioUrl + '/studio/hub?token=' + res.token;
                 }
             } else {
                 cancelGoogleLogin();
@@ -209,10 +210,10 @@
                     } else if (data.user.akses_level === 'Agent' || data.user.id_staff) {
                         navigate('/agent/dashboard');
                     } else {
-                        window.location.href = 'http://localhost:5174/studio/hub?token=' + data.token;
+                        window.location.href = studioUrl + '/studio/hub?token=' + data.token;
                     }
                 } else {
-                    window.location.href = 'http://localhost:5174/studio/hub?token=' + data.token;
+                    window.location.href = studioUrl + '/studio/hub?token=' + data.token;
                 }
             } else {
                 errors = { global: "Gagal memproses login" };
